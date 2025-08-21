@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income vs Expenses Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .expense-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn {
+            background: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .percentage {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .remaining {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>Income vs Expenses Calculator</h1>
+
+    <!-- Income Section -->
+    <div class="section">
+        <h2>Income</h2>
+        <div class="form-group">
+            <label for="incomeAmount">Enter Income Amount:</label>
+            <input type="number" id="incomeAmount" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label for="incomeDescription">Description (optional):</label>
+            <input type="text" id="incomeDescription" placeholder="Salary, freelance, etc.">
+        </div>
+        <button onclick="calculator.addIncome()">Add Income</button>
+        
+        <div id="incomeList"></div>
+        <p><strong>Total Income: $<span id="totalIncome">0.00</span></strong></p>
+    </div>
+
+    <!-- Expenses Section -->
+    <div class="section">
+        <h2>Expenses</h2>
+        <div class="form-group">
+            <label for="expenseAmount">Enter Expense Amount:</label>
+            <input type="number" id="expenseAmount" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label for="expenseDescription">Description (optional):</label>
+            <input type="text" id="expenseDescription" placeholder="Food, rent, etc.">
+        </div>
+        <button onclick="calculator.addExpense()">Add Expense</button>
+        
+        <div id="expenseList"></div>
+        <p><strong>Total Expenses: $<span id="totalExpenses">0.00</span></strong></p>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results">
+        <h2>Calculation Results</h2>
+        <p><strong>Total Income:</strong> $<span id="resultIncome">0.00</span></p>
+        <p><strong>Total Expenses:</strong> $<span id="resultExpenses">0.00</span></p>
+        <p><strong>Remaining:</strong> <span id="remaining" class="remaining">$0.00</span></p>
+        <p><strong>Percentage Spent:</strong> <span id="percentageSpent" class="percentage">0%</span></p>
+        
+        <button onclick="calculator.clearAll()">Clear All</button>
+    </div>
+
+    <script>
+        class IncomeExpenseCalculator {
+            constructor() {
+                this.incomes = [];
+                this.expenses = [];
+                this.updateResults();
+            }
+
+            addIncome() {
+                const amount = parseFloat(document.getElementById('incomeAmount').value);
+                const description = document.getElementById('incomeDescription').value.trim();
+
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid income amount');
+                    return;
+                }
+
+                const income = {
+                    id: Date.now(),
+                    amount: amount,
+                    description: description || 'Income',
+                    date: new Date().toLocaleDateString()
+                };
+
+                this.incomes.push(income);
+                document.getElementById('incomeAmount').value = '';
+                document.getElementById('incomeDescription').value = '';
+                this.renderIncomes();
+                this.updateResults();
+            }
+
+            addExpense() {
+                const amount = parseFloat(document.getElementById('expenseAmount').value);
+                const description = document.getElementById('expenseDescription').value.trim();
+
+                if (!amount || amount <= 0) {
+                    alert('Please enter a valid expense amount');
+                    return;
+                }
+
+                const expense = {
+                    id: Date.now(),
+                    amount: amount,
+                    description: description || 'Expense',
+                    date: new Date().toLocaleDateString()
+                };
+
+                this.expenses.push(expense);
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseDescription').value = '';
+                this.renderExpenses();
+                this.updateResults();
+            }
+
+            deleteIncome(id) {
+                this.incomes = this.incomes.filter(income => income.id !== id);
+                this.renderIncomes();
+                this.updateResults();
+            }
+
+            deleteExpense(id) {
+                this.expenses = this.expenses.filter(expense => expense.id !== id);
+                this.renderExpenses();
+                this.updateResults();
+            }
+
+            renderIncomes() {
+                const incomeList = document.getElementById('incomeList');
+                if (this.incomes.length === 0) {
+                    incomeList.innerHTML = '';
+                    return;
+                }
+
+                incomeList.innerHTML = this.incomes.map(income => `
+                    <div class="expense-item">
+                        <span>${income.description}: $${income.amount.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="calculator.deleteIncome(${income.id})">Delete</button>
+                    </div>
+                `).join('');
+            }
+
+            renderExpenses() {
+                const expenseList = document.getElementById('expenseList');
+                if (this.expenses.length === 0) {
+                    expenseList.innerHTML = '';
+                    return;
+                }
+
+                expenseList.innerHTML = this.expenses.map(expense => `
+                    <div class="expense-item">
+                        <span>${expense.description}: $${expense.amount.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="calculator.deleteExpense(${expense.id})">Delete</button>
+                    </div>
+                `).join('');
+            }
+
+            getTotalIncome() {
+                return this.incomes.reduce((total, income) => total + income.amount, 0);
+            }
+
+            getTotalExpenses() {
+                return this.expenses.reduce((total, expense) => total + expense.amount, 0);
+            }
+
+            getPercentageSpent() {
+                const totalIncome = this.getTotalIncome();
+                const totalExpenses = this.getTotalExpenses();
+                
+                if (totalIncome === 0) return 0;
+                return (totalExpenses / totalIncome) * 100;
+            }
+
+            getRemaining() {
+                return this.getTotalIncome() - this.getTotalExpenses();
+            }
+
+            updateResults() {
+                const totalIncome = this.getTotalIncome();
+                const totalExpenses = this.getTotalExpenses();
+                const remaining = this.getRemaining();
+                const percentageSpent = this.getPercentageSpent();
+
+                // Update totals in sections
+                document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
+                document.getElementById('totalExpenses').textContent = totalExpenses.toFixed(2);
+
+                // Update results section
+                document.getElementById('resultIncome').textContent = totalIncome.toFixed(2);
+                document.getElementById('resultExpenses').textContent = totalExpenses.toFixed(2);
+                document.getElementById('remaining').textContent = `$${remaining.toFixed(2)}`;
+                document.getElementById('percentageSpent').textContent = `${percentageSpent.toFixed(1)}%`;
+
+                // Color code remaining amount
+                const remainingElement = document.getElementById('remaining');
+                remainingElement.className = remaining >= 0 ? 'remaining' : 'percentage';
+
+                // Color code percentage
+                const percentageElement = document.getElementById('percentageSpent');
+                if (percentageSpent > 100) {
+                    percentageElement.style.color = '#dc3545'; // Red for overspending
+                } else if (percentageSpent > 80) {
+                    percentageElement.style.color = '#ffc107'; // Yellow for high spending
+                } else {
+                    percentageElement.style.color = '#28a745'; // Green for good spending
+                }
+            }
+
+            clearAll() {
+                if (confirm('Are you sure you want to clear all data?')) {
+                    this.incomes = [];
+                    this.expenses = [];
+                    this.renderIncomes();
+                    this.renderExpenses();
+                    this.updateResults();
+                }
+            }
+
+            // Quick calculation method
+            quickCalculate(income, expenses) {
+                if (income === 0) return { percentage: 0, remaining: -expenses };
+                const percentage = (expenses / income) * 100;
+                const remaining = income - expenses;
+                return { percentage: percentage.toFixed(1), remaining: remaining.toFixed(2) };
+            }
+        }
+
+        // Initialize calculator
+        const calculator = new IncomeExpenseCalculator();
+
+        // Allow Enter key to submit
+        document.getElementById('incomeAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculator.addIncome();
+        });
+
+        document.getElementById('expenseAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculator.addExpense();
+        });
+    </script>
+</body>
+</html>
