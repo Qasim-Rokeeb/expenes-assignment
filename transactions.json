@@ -1,0 +1,16 @@
+[
+  {
+    "type": "Income",
+    "amount": 100.0,
+    "description": "savings",
+    "date": "2025-08-25",
+    "time": "13:38:02"
+  },
+  {
+    "type": "Expense",
+    "amount": 20.0,
+    "description": "snacks",
+    "date": "2025-08-25",
+    "time": "13:38:34"
+  }
+]
